@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { MapContainer, TileLayer, Polygon, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polygon, useMapEvents } from 'react-leaflet';
 import { LatLng, LeafletMouseEvent } from 'leaflet';
 import { Button, Card, Input, Select, App } from 'antd';
 import useDashboardStore from '../store/dashboardStore';
@@ -11,8 +11,6 @@ import type { Polygon as PolygonType, ColorRule } from '../store/dashboardStore'
 const { Option } = Select;
 
 import L from 'leaflet';
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
 let DefaultIcon = L.divIcon({
   html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -99,8 +97,13 @@ const DrawingHandler: React.FC<DrawingHandlerProps> = ({ onPolygonComplete }) =>
   ) : null;
 };
 
-const MapComponent: React.FC = () => {
+interface WeatherData {
+  hourly?: {
+    temperature_2m?: number[];
+  };
+}
 
+const MapComponent: React.FC = () => {
   const { message } = App.useApp();
   
   const {
@@ -110,8 +113,6 @@ const MapComponent: React.FC = () => {
     isDrawing,
     setIsDrawing,
     addPolygon,
-    deletePolygon,
-    updatePolygon,
     setSelectedPolygon,
     selectedPolygon,
     timeRange,
@@ -125,8 +126,6 @@ const MapComponent: React.FC = () => {
   const [showNamingModal, setShowNamingModal] = useState(false);
   const [pendingPolygon, setPendingPolygon] = useState<[number, number][] | null>(null);
   
-  const polygonIds = useMemo(() => polygons.map(p => p.id), [polygons]);
-  
   const handlePolygonComplete = useCallback((coordinates: [number, number][]) => {
     if (coordinates.length < 3 || coordinates.length > 12) {
       message.error('Polygon must have between 3 and 12 points');
@@ -136,6 +135,41 @@ const MapComponent: React.FC = () => {
     setPendingPolygon(coordinates);
     setShowNamingModal(true);
   }, [message]);
+  
+  const fetchWeatherDataForPolygon = useCallback(async (polygon: PolygonType) => {
+    try {
+      setIsLoading(true);
+      const { start, end } = WeatherService.getDateRange();
+      const data = await WeatherService.getWeatherData(
+        polygon.centroid[0],
+        polygon.centroid[1],
+        start,
+        end
+      );
+      
+      updateWeatherData(polygon.id, data);
+      
+      updatePolygonColorFromData(polygon.id, data);
+      
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      message.error('Failed to fetch weather data for polygon');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setIsLoading, updateWeatherData, message]);
+  
+  const updatePolygonColorFromData = useCallback((polygonId: string, data: WeatherData) => {
+    if (!data.hourly || !data.hourly.temperature_2m) return;
+    
+    const startIndex = timeRange[0];
+    const endIndex = Math.min(timeRange[1], data.hourly.temperature_2m.length - 1);
+    
+    const temps = data.hourly.temperature_2m.slice(startIndex, endIndex + 1);
+    const avgTemp = temps.reduce((sum: number, temp: number) => sum + temp, 0) / temps.length;
+    
+    updatePolygonColor(polygonId, avgTemp);
+  }, [timeRange, updatePolygonColor]);
   
   const createPolygon = useCallback(async () => {
     if (!pendingPolygon || !newPolygonName.trim()) {
@@ -176,42 +210,7 @@ const MapComponent: React.FC = () => {
     setIsDrawing(false);
     
     message.success(`Polygon "${newPolygon.name}" created successfully`);
-  }, [pendingPolygon, newPolygonName, addPolygon, setIsDrawing, message]);
-  
-  const fetchWeatherDataForPolygon = useCallback(async (polygon: PolygonType) => {
-    try {
-      setIsLoading(true);
-      const { start, end } = WeatherService.getDateRange();
-      const data = await WeatherService.getWeatherData(
-        polygon.centroid[0],
-        polygon.centroid[1],
-        start,
-        end
-      );
-      
-      updateWeatherData(polygon.id, data);
-      
-      updatePolygonColorFromData(polygon.id, data);
-      
-    } catch (error) {
-      console.error('Error fetching weather data:', error);
-      message.error('Failed to fetch weather data for polygon');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setIsLoading, updateWeatherData, timeRange, message]);
-  
-  const updatePolygonColorFromData = useCallback((polygonId: string, data: any) => {
-    if (!data.hourly || !data.hourly.temperature_2m) return;
-    
-    const startIndex = timeRange[0];
-    const endIndex = Math.min(timeRange[1], data.hourly.temperature_2m.length - 1);
-    
-    const temps = data.hourly.temperature_2m.slice(startIndex, endIndex + 1);
-    const avgTemp = temps.reduce((sum: number, temp: number) => sum + temp, 0) / temps.length;
-    
-    updatePolygonColor(polygonId, avgTemp);
-  }, [timeRange, updatePolygonColor]);
+  }, [pendingPolygon, newPolygonName, addPolygon, setIsDrawing, message, fetchWeatherDataForPolygon]);
   
   const handleCancelNaming = useCallback(() => {
     setShowNamingModal(false);
@@ -227,7 +226,7 @@ const MapComponent: React.FC = () => {
         updatePolygonColorFromData(polygonId, data);
       }
     });
-  }, [timeRange]); 
+  }, [timeRange, updatePolygonColorFromData, weatherData]); 
   
   return (
     <div className="h-full flex flex-col">

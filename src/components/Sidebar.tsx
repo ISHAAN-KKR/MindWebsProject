@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Button, Input, Select, InputNumber, Space, Divider, Tag, Popconfirm } from 'antd';
+import { Card, Button, Select, InputNumber, Space, Divider, Popconfirm } from 'antd';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import useDashboardStore from '../store/dashboardStore';
 import type { ColorRule } from '../store/dashboardStore';
@@ -100,7 +100,7 @@ const Sidebar: React.FC = () => {
           <Card>
             <div className="text-center text-gray-500 py-8">
               <p className="mb-2">No polygons created yet</p>
-              <p className="text-sm">Click "Draw Polygon" to get started</p>
+              <p className="text-sm">Click &quot;Draw Polygon&quot; to get started</p>
             </div>
           </Card>
         ) : (
