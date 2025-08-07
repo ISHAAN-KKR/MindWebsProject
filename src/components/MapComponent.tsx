@@ -1,18 +1,16 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Polygon, useMapEvents } from 'react-leaflet';
-import { LatLng, LeafletMouseEvent } from 'leaflet';
-import { Button, Card, Input, Select, App } from 'antd';
+import { LeafletMouseEvent } from 'leaflet';
+import { Button, Card, Input, App } from 'antd';
 import useDashboardStore from '../store/dashboardStore';
 import { WeatherService } from '../services/weatherService';
 import type { Polygon as PolygonType, ColorRule } from '../store/dashboardStore';
 
-const { Option } = Select;
-
 import L from 'leaflet';
 
-let DefaultIcon = L.divIcon({
+const DefaultIcon = L.divIcon({
   html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M12.5 0C5.59644 0 0 5.59644 0 12.5C0 19.4036 5.59644 25 12.5 25C19.4036 25 25 19.4036 25 12.5C25 5.59644 19.4036 0 12.5 0Z" fill="#3388ff"/>
   </svg>`,
