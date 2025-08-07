@@ -30,5 +30,5 @@ A dynamic data visualization dashboard built with Next.js, TypeScript, and Leafl
 
 1. Clone the repository:
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/ISHAAN-KKR/MindWebsProject.git
 cd mindwebs-dashboard
