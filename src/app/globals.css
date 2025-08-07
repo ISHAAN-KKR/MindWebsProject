@@ -1,0 +1,70 @@
+@import "tailwindcss";
+@tailwind utilities;
+@import 'leaflet/dist/leaflet.css';
+
+/* Custom styles for leaflet */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.leaflet-control-zoom {
+  display: none;
+}
+
+/* Timeline slider styles */
+.timeline-slider {
+  width: 100%;
+  height: 60px;
+  margin: 20px 0;
+}
+
+.timeline-track {
+  background: #ddd;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.timeline-thumb {
+  width: 16px;
+  height: 16px;
+  background: #1890ff;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Sidebar styles */
+.sidebar {
+  background: white;
+  border-left: 1px solid #e8e8e8;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Polygon info styles */
+.polygon-item {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #fafafa;
+}
+
+.color-rule {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 4px;
+  border-radius: 4px;
+  background: white;
+  border: 1px solid #e8e8e8;
+}
+
+.color-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  margin-right: 8px;
+  border: 1px solid #ccc;
+}
